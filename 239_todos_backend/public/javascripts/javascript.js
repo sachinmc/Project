@@ -33,7 +33,14 @@ const todo = {
       data: data,
       success: function(json) {
         self.updateTodoCount(self.current_section.data += 1);
-        $('tbody').append(self.list_template({ selected: [json] }));
+        let $checked_item = $('tbody').find(':checked').eq(0);
+
+        if ($checked_item.length > 0) {
+          $checked_item.parents('tr').before(self.list_template({ selected: [json] }));
+        } else {
+          $('tbody').append(self.list_template({ selected: [json] }));
+        }
+
         $('form').get(0).reset();
         self.hideForm();
       },
@@ -129,6 +136,12 @@ const todo = {
   },
   buildPage: function() {
     const self = this;
+    const $items = $('body').find('#items');
+    if ($items.length > 0) {
+      $('body').find('#items').remove();
+      $('body').append($items);
+      return;
+    }
     $('body').append(self.main_template({
       current_section: self.current_section,
     }));
