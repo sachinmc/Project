@@ -33,7 +33,23 @@ put '/todos/:id' do
   end
 end
 
-you can still edit completed items, saving them after modal edit, keeps them as completed 
+you can still edit completed items, saving them after modal edit, keeps them as completed
+
+Todos order maintained
+
+dates are sorted
+
+says no due dates for default, then server doesn't accept empty slots
+
+
+Better to have started with the side bar
+
+title minimum 3 chars
+
+edited template for ndd
+
+when you add or update todo, it redirects to the main page. requirements doesn't
+specifically say anything otherwise. same convention as add todos 
 
 
 CDN sources:

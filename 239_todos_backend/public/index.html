@@ -142,7 +142,11 @@
       <input type="checkbox" name="item_{{id}}" id="item_{{id}}"/>
       {{/if}}
       <span class="check"></span>
+      {{#if ndd}}
+      <label for="item_{{id}}">{{title}} - {{ndd}}</label></td>
+      {{else}}
       <label for="item_{{id}}">{{title}} - {{month}}/{{year}}</label></td>
+      {{/if}}
       <td class="delete"><img src="images/trash.png" alt="Delete"/></td>
     </tr>
   </script>
