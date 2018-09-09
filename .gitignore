@@ -1,10 +1,6 @@
 *.md
 index_backup.*
 test.*
-javascript_backup1.js
-javascript_backup2.js
-javascript_backup3.js
-javascript_backup4.js
-javascript_backup5.js
-
+*.zip
+*backup*
 

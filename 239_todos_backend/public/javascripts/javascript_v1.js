@@ -1,6 +1,5 @@
 $(function() {
   const todo_main = {
-
   updateTodoCount: function(count) {
     this.current_section.data = count;
     $('#items header dd').text(count);
@@ -11,7 +10,6 @@ $(function() {
   },
   submitForm: function() {
     event.preventDefault();
-    console.log('from inside submit form', this.current_todo);
     if (this.current_todo !== undefined) {
       this.updateTodo();
     } else {
@@ -48,7 +46,6 @@ $(function() {
       method: 'POST',
       data: data,
       success: function(json) {
-        //self.updateTodoCount(self.current_section.data += 1);
         $.get('http://localhost:4567/api/todos', function(data) {
           self.todos = data;
           self.generateLists(data);
@@ -64,7 +61,6 @@ $(function() {
         json.ndd = 'No Due Date';
         //
         let data = self.truncateYear([json]);
-
 
         if ($checked_item.length > 0) {
           $checked_item.parents('tr').before(self.list_template({ selected: data }));
@@ -117,17 +113,6 @@ $(function() {
       method: 'PUT',
       data: data,
       success: function(json) {
-        /*
-        let update_title_date;
-        let date;
-        if (json.month === '00'|| json.year === '0000') {
-          update_title_date = json.title + ' - ' + 'No Due Date';
-          date = 'No Due Date';
-        } else {
-          update_title_date = json.title + ' - ' + json.month + '/' + json.year.substring(2);
-          date = json.month + '/' + json.year.substring(2);
-        }
-        */
 
         $.get('http://localhost:4567/api/todos', function(data) {
           self.todos = data;
@@ -138,12 +123,7 @@ $(function() {
           self.displayAllTodoPage();
         }, 'json');
 
-        //let $to_update = $('body').find('label[for=item_' + self.current_todo + ']');
-        //$to_update.text(update_title_date);
-
         $('form').get(0).reset();
-
-        //self.buildPage();
         self.hideForm();
       },
       error: function(jqxhr) {
@@ -191,12 +171,9 @@ $(function() {
 
     if ($currentTarget.is('label')) {
       self.current_todo = undefined;
-      console.log('label for add new todo', self.current_todo);
     } else if ($target.is('label')) {
-
       self.current_todo = +$target.parents('tr').attr('data-id');
       this.fillForm(self.current_todo);
-      console.log('label for update todo', self.current_todo);
     }
   },
   fillForm: function(id) {
@@ -233,8 +210,6 @@ $(function() {
         method: 'PUT',
         data: { completed: true },
         success: function() {
-          //$('tr[data-id=' + self.current_todo + ']').remove();
-
           $.get('http://localhost:4567/api/todos', function(data) {
             self.todos = data;
             // no due date
@@ -256,13 +231,6 @@ $(function() {
                 // do nothing
               } else {
                 $('tbody').children().remove();
-                /*
-                let todos = self.todos.filter(function(todo) {
-                  let monthYear = todo.month + '/' + todo.year.substring(2);
-                  return monthYear === self.current_section.title;
-                });
-                */
-
                 // no due date
                 let todos;
                 if (self.current_section.title === 'No Due Date') {
@@ -276,8 +244,6 @@ $(function() {
                     return monthYear === self.current_section.title;
                   });
                 }
-                //
-
                 $('tbody').append(self.list_template({
                   selected: self.truncateYear(todos)
                 }));
@@ -288,14 +254,11 @@ $(function() {
                   $('tbody').append($checked);
                 }
               }
-
             } else {
               $('tr[data-id=' + self.current_todo + ']').remove();
               self.sortCompletedItems();
             }
           }, 'json');
-
-
           self.hideForm();
         },
         error: function(jqxhr) {
@@ -311,42 +274,41 @@ $(function() {
       method: 'GET',
       dataType: 'json',
       success: function(json) {
-          //self.updateTodoCount(json.length);
-          $('tbody').find('tr').remove();
-          let completed = json.filter(function(todo) {
-            return todo.completed === true;
-          });
-          completed = completed.sort(function(a, b) {
-            return a.id - b.id;
-          });
+        $('tbody').find('tr').remove();
+        let completed = json.filter(function(todo) {
+          return todo.completed === true;
+        });
+        completed = completed.sort(function(a, b) {
+          return a.id - b.id;
+        });
 
-          let pending = json.filter(function(todo) {
-            return todo.completed === false;
-          });
+        let pending = json.filter(function(todo) {
+          return todo.completed === false;
+        });
 
-          completed = completed.map(function(todo_obj) {
-            if (todo_obj.month === '00' || todo_obj.year === '0000') {
-              todo_obj.ndd = 'No Due Date';
-            }
-            return todo_obj;
-          });
+        completed = completed.map(function(todo_obj) {
+          if (todo_obj.month === '00' || todo_obj.year === '0000') {
+            todo_obj.ndd = 'No Due Date';
+          }
+          return todo_obj;
+        });
 
-          pending = pending.map(function(todo_obj) {
-            if (todo_obj.month === '00' || todo_obj.year === '0000') {
-              todo_obj.ndd = 'No Due Date';
-            }
-            return todo_obj;
-          });
-          $('tbody').append(self.list_template({ selected: self.truncateYear(pending) }));
-          $('tbody').append(self.list_template({ selected: self.truncateYear(completed) }));
+        pending = pending.map(function(todo_obj) {
+          if (todo_obj.month === '00' || todo_obj.year === '0000') {
+            todo_obj.ndd = 'No Due Date';
+          }
+          return todo_obj;
+        });
+        $('tbody').append(self.list_template({ selected: self.truncateYear(pending) }));
+        $('tbody').append(self.list_template({ selected: self.truncateYear(completed) }));
 
-          let completed_ids = completed.map(function(todo) {
-            return todo.id;
-          });
+        let completed_ids = completed.map(function(todo) {
+          return todo.id;
+        });
 
-          completed_ids.forEach(function(todo_id) {
-            $('input[id=item_' + todo_id + ']').prop('checked', true);
-          });
+        completed_ids.forEach(function(todo_id) {
+          $('input[id=item_' + todo_id + ']').prop('checked', true);
+        });
       },
     });
   },
@@ -422,7 +384,6 @@ $(function() {
         self.modalMarkComplete();
       }
     }
-
   },
   sortCompletedItems: function() {
     const self = this;
@@ -457,7 +418,6 @@ $(function() {
     let month;
     let monYr = [];
     let doneMonYr = [];
-
     //reset
     self.todos_by_date = {};
     self.done_todos_by_date = {};
@@ -471,8 +431,6 @@ $(function() {
         doneMonYr.push(month + '/' + day + '/' + year);
       }
     });
-
-    //debugger;
 
     let filterMonYr = monYr.filter(function(date) {
       return !/^00|00$/.test(date);
@@ -498,12 +456,8 @@ $(function() {
       }
     }
 
-
-
     monYr = self.sortSideBarList(filterMonYr);
     doneMonYr = self.sortSideBarList(filterDoneMonYr);
-
-    //debugger;
 
     for (let i = 0; i < monYr.length; i += 1) {
       if (self.todos_by_date.hasOwnProperty(monYr[i])) {
@@ -547,7 +501,6 @@ $(function() {
   },
   buildPage: function() {
     const self = this;
-    //$('tbody').children().remove();
 
     $.ajax({
       url: 'http://localhost:4567/api/todos',
@@ -557,15 +510,13 @@ $(function() {
         let completed = json.filter(function(todo) {
           return todo.completed === true;
         });
-        self.todos = json; // all todos template - sidebar, for length
-        self.done = completed; // completed todos template -sidebar, for length
+        self.todos = json;
+        self.done = completed;
 
         $('body').append(self.main_template({
-          //current_section: self.current_section,
           todos: self.todos,
           done: self.done,
         }));
-
         // no due date
         json = json.map(function(todo_obj) {
           if (todo_obj.month === '00' || todo_obj.year === '0000') {
@@ -574,7 +525,6 @@ $(function() {
           return todo_obj;
         });
         //
-
         self.generateLists(json);
 
         self.renderSideBar();
@@ -590,7 +540,7 @@ $(function() {
           success: function(json) {
             self.current_section.title = 'All Todos';
             self.current_section.data = json.length;
-            //self.updateTodoCount(json.length);
+
             self.renderHeader();
 
             let pending = json.filter(function(todo) {
@@ -603,7 +553,6 @@ $(function() {
             completed = completed.sort(function(a, b) {
               return a.id - b.id;
             });
-
             // no due date
             pending = pending.map(function(todo_obj) {
               if (todo_obj.month === '00' || todo_obj.year === '0000') {
@@ -612,7 +561,6 @@ $(function() {
               return todo_obj;
             });
             //
-
             // no due date
             completed = completed.map(function(todo_obj) {
               if (todo_obj.month === '00' || todo_obj.year === '0000') {
@@ -621,7 +569,6 @@ $(function() {
               return todo_obj;
             });
             //
-
             // build items on main page
             $('tbody').append(self.list_template({ selected: self.truncateYear(pending) }));
             $('tbody').append(self.list_template({ selected: self.truncateYear(completed) }));
@@ -629,14 +576,12 @@ $(function() {
         });
       },
     });
-
   },
   compileTemplates: function() {
     this.main_template = Handlebars.compile($('#main_template').html());
     this.list_template = Handlebars.compile($('#list_template').html());
     this.all_list_template = Handlebars.compile($('#all_list_template').html());
     this.completed_list_template = Handlebars.compile($('#completed_list_template').html());
-    //Handlebars.registerHelper to split year
 
     Handlebars.registerPartial('all_todos_template', $('#all_todos_template').html());
     Handlebars.registerPartial('all_list_template', $('#all_list_template').html());
@@ -662,8 +607,6 @@ $(function() {
 
     self.renderHeader();
 
-    // remove current children from tbody
-    // add new children to tbody by comparing the month / year
     $('tbody').children().remove();
     // no due date
     let todos;
@@ -765,13 +708,7 @@ $(function() {
     self.renderHeader();
 
     $('tbody').children().remove();
-    /*
-    let todos = self.todos.filter(function(todo) {
-      let monthYear = todo.month + '/' + todo.year.substring(2);
-      return monthYear === self.current_section.title;
-    });
-    */
-    // no due date
+
     let todos;
     if (self.current_section.title === 'No Due Date') {
       todos = self.todos.filter(function(todo) {
@@ -784,7 +721,7 @@ $(function() {
         return monthYear === self.current_section.title;
       });
     }
-    //
+
     let completed = todos.filter(todo => (todo.completed === true));
 
     $('tbody').append(self.list_template({ selected: self.truncateYear(completed) }));
@@ -819,9 +756,8 @@ $(function() {
 
     this.compileTemplates();
     this.buildPage();
-    //this.bindEvents();
   }
  }
 
  todo_main.init();
-})
+});
