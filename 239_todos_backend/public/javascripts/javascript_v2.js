@@ -35,6 +35,12 @@ const current_section = {
 }
 // the main page object
 const main_page_object = {
+  noDueDateUpdate: function(todos) {
+   return todos.map(function(todo) {
+      if (todo.year === '01' ) { todo.ndd = true }
+      return todo;
+    });
+  },
   displayModal: function() {
     event.preventDefault(); // prevents checking the rows
     const $currentTarget = $(event.currentTarget);
@@ -127,6 +133,7 @@ const main_page_object = {
     $.get('http://localhost:4567/api/todos', function(json) {
       json = self.formatYear(json);
 
+
       $('#items tbody').children().remove();
 
       if (current_section.title === 'All Todos') {
@@ -134,23 +141,29 @@ const main_page_object = {
         self.updateHeader(null, json.length);
         all_todos_sidebar.updateHeader(json);
         completed_sidebar.updateHeader(completed);
-      } else { // clicking on the list
+      } else { // clicking on the main page list
         json = json.filter(function(todo) {
-          return todo.month + '/' + todo.year === current_section.title;
+          if (current_section.title === 'No Due Date') {
+            return todo.year === '01';
+          } else {
+            return todo.month + '/' + todo.year === current_section.title;
+          }
         });
         self.updateHeader(null, json.length);
       }
 
-      const pending = json.filter(function(todo) {
+      let pending = json.filter(function(todo) {
         return todo.completed === false;
       });
-      const completed = json.filter(function(todo) {
+      let completed = json.filter(function(todo) {
         return todo.completed === true;
       });
 
+      pending = self.noDueDateUpdate(pending);
+      completed = self.noDueDateUpdate(completed);
+
       $('tbody').append(list_template({ selected: pending }));
       $('tbody').append(list_template({ selected: completed }));
-
     },'json');
   },
   completedRowReq: function() {
@@ -165,13 +178,19 @@ const main_page_object = {
       });
 
       if (current_section.title === 'Completed') {
+        self.noDueDateUpdate(completed);
         self.updateHeader(null, completed.length);
         completed_sidebar.updateHeader(completed);
         $('tbody').append(list_template({ selected: completed }));
       } else { // clicking on the list
         completed = completed.filter(function(todo) {
-          return todo.month + '/' + todo.year === current_section.title;
+          if (current_section.title === 'No Due Date') {
+            return todo.year === '01';
+          } else {
+            return todo.month + '/' + todo.year === current_section.title;
+          }
         });
+        self.noDueDateUpdate(completed);
         self.updateHeader(null, completed.length);
         $('tbody').append(list_template({ selected: completed }));
       }
@@ -244,6 +263,13 @@ const modal_object = {
     }
     main_page_object.hideModal();
   },
+  noDueDateCheck: function(data) {
+    if (isNaN(Number(data.month + data.year))) {
+      data.month = '01';
+      data.year = '0001';
+    }
+    if (isNaN(Number(+data.day))) { data.day = '01'; }
+  },
   addRowsReq: function() {
     const data = {
       title: $('#title').val(),
@@ -253,7 +279,9 @@ const modal_object = {
       description: $('textarea[name=description]').val(),
       completed: false,
     };
-    console.log('add rows request');
+
+    this.noDueDateCheck(data);
+
     $.post('http://localhost:4567/api/todos', data, function(json) {
       main_page_object.updateHeader('All Todos', null); // go back to main page
       main_page_object.displayRowReq(); // go back to main page
@@ -274,6 +302,8 @@ const modal_object = {
       completed: status,
     };
 
+    this.noDueDateCheck(data);
+
     $.ajax({
       url: 'http://localhost:4567/api/todos/' + self.idStore,
       method: 'PUT',
@@ -281,6 +311,7 @@ const modal_object = {
       success: function(json) {
         main_page_object.displayRowReq();
         all_todos_sidebar.displayAllListsReq();
+        completed_sidebar.displayAllListsReq();
       }
     });
   },
@@ -297,6 +328,7 @@ const modal_object = {
       data: { completed: true },
       success: function(json) {
         main_page_object.updateRows(json, null, null);
+        completed_sidebar.displayAllListsReq();
       }
     });
     main_page_object.hideModal();
@@ -348,7 +380,12 @@ const all_todos_sidebar = {
       let year = String(date.getFullYear());
       if (month.length < 2) { month = '0' + month; };
       year = year.substring(2);
-      return month + '/' + year;
+      let month_year = month + '/' + year;
+      if (month_year === '01/01') {
+        return 'No Due Date';
+      } else {
+        return month_year;
+      }
     });
   },
   buildTodosObj: function(dates) {
@@ -441,7 +478,12 @@ const completed_sidebar = {
       let year = String(date.getFullYear());
       if (month.length < 2) { month = '0' + month; };
       year = year.substring(2);
-      return month + '/' + year;
+      let month_year = month + '/' + year;
+      if (month_year === '01/01') {
+        return 'No Due Date';
+      } else {
+        return month_year;
+      }
     });
   },
   buildDoneTodosObj: function(dates) {
