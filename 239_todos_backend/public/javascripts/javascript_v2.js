@@ -1,3 +1,9 @@
+// refactor:
+// pass and execute methods as callbacks for specific purposes.
+// e.g displayRowReq
+//
+// use bind instead of $.proxy
+
 // compile Handlebars
 const main_template = Handlebars.compile($('#main_template').html());
 const title_template = Handlebars.compile($('#title_template').html());
@@ -198,13 +204,10 @@ const main_page_object = {
   },
   markRowReq: function() {
     event.preventDefault();
-
     let data;
     const self = this;
-    const $target = $(event.target); //td.list-item
-
+    const $target = $(event.target);
     if ($target.is('label')) { return; } // label click (on row link) for display Modal
-
     const id = $target.parents('tr').attr('data-id');
     const $checked = $target.children(':checked');
     data = $checked.length > 0 ? { completed: false } : { completed: true };
@@ -302,8 +305,6 @@ const modal_object = {
       completed: status,
     };
 
-    this.noDueDateCheck(data);
-
     $.ajax({
       url: 'http://localhost:4567/api/todos/' + self.idStore,
       method: 'PUT',
@@ -311,7 +312,7 @@ const modal_object = {
       success: function(json) {
         main_page_object.displayRowReq();
         all_todos_sidebar.displayAllListsReq();
-        completed_sidebar.displayAllListsReq();
+        completed_sidebar.display
       }
     });
   },
@@ -328,7 +329,6 @@ const modal_object = {
       data: { completed: true },
       success: function(json) {
         main_page_object.updateRows(json, null, null);
-        completed_sidebar.displayAllListsReq();
       }
     });
     main_page_object.hideModal();
